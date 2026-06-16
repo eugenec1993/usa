@@ -115,7 +115,8 @@ def extract_listings(blob):
         if isinstance(node, dict):
             keys = {k.lower() for k in node.keys()}
             has_section = any(k in keys for k in
-                              ("section", "section_id", "section_name", "sg_section", "sec"))
+                              ("section", "section_id", "section_name",
+                               "sid", "lid", "sg_section", "sec"))
             has_price = any(k in keys for k in ("price", "display_price", "p", "dp", "pf"))
             if has_section and has_price:
                 found.append(node)
@@ -140,7 +141,7 @@ def normalize(listing):
     low = {k.lower(): v for k, v in listing.items()}
 
     section = None
-    for k in ("section_id", "section", "sg_section", "sec", "section_name"):
+    for k in ("sid", "section_id", "section", "sg_section", "sec", "section_name", "lid"):
         if k in low and low[k] not in (None, ""):
             m = re.search(r"\d+", str(low[k]))
             if m:
