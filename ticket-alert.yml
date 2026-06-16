@@ -2,7 +2,7 @@ name: WC Ticket Alert
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay/skip under load)
+    - cron: "*/10 * * * *"   # every 15 min (GitHub may delay/skip under load)
   workflow_dispatch: {}       # lets you run it by hand to test
 
 permissions:
