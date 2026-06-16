@@ -31,12 +31,12 @@ SOURCES = [
         "https://seatgeek.com/fifa-world-cup-tickets/international-soccer/2026-06-19-12-pm/17248696"},
     {"name": "TickPick", "url":
         "https://www.tickpick.com/buy-fifa-world-cup-26-group-d-united-states-vs-australia-match-32-tickets-lumen-field-6-19-26-12pm/6259615/"},
-    # {"name": "StubHub", "url":
-    #     "https://www.stubhub.com/world-cup-seattle-tickets-6-19-2026/event/153020544"},
-    # {"name": "Vivid Seats", "url":
-    #     "https://www.vividseats.com/world-cup-soccer-tickets-lumen-field-6-19-2026--sports-soccer/production/5080483"},
-    # {"name": "Gametime", "url":
-    #     "https://gametime.co/us_australia/fifa-world-cup-usa-vs-australia-match-32-group-d-tickets/6-19-2026-seattle-wa-lumen-field/events/66aa92642e8443f895e2dbc8"},
+    {"name": "StubHub", "url":
+        "https://www.stubhub.com/world-cup-seattle-tickets-6-19-2026/event/153020544"},
+    {"name": "Vivid Seats", "url":
+        "https://www.vividseats.com/world-cup-soccer-tickets-lumen-field-6-19-2026--sports-soccer/production/5080483"},
+    {"name": "Gametime", "url":
+        "https://gametime.co/us_australia/fifa-world-cup-usa-vs-australia-match-32-group-d-tickets/6-19-2026-seattle-wa-lumen-field/events/66aa92642e8443f895e2dbc8"},
 ]
 # FIFA official resale is intentionally NOT here: it needs your FIFA login and
 # is heavily protected. Use FIFA's own site alerts for that source.
@@ -50,6 +50,7 @@ PRICE_LIMIT = float(_env("PRICE_LIMIT", "2500"))
 MIN_QTY     = int(_env("MIN_QTY", "4"))
 SECTION_MIN = int(_env("SECTION_MIN", "100"))
 SECTION_MAX = int(_env("SECTION_MAX", "299"))
+DEBUG       = _env("DEBUG", "") not in ("", "0", "false", "False")
 STATE_FILE  = "state.json"
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -233,23 +234,24 @@ def main():
     for src in SOURCES:
         try:
             captured, json_urls = scrape_source(src["url"], src["name"])
-            print(f"[{src['name']}] saw {len(json_urls)} JSON endpoint(s), "
-                  f"captured {len(captured)} matching the feed hints")
-            for u in json_urls[:40]:
-                print(f"[{src['name']}]   endpoint: {u}")
-            for i, entry in enumerate(captured):
-                data = entry["data"]
-                top = list(data.keys()) if isinstance(data, dict) else "(list)"
-                print(f"[{src['name']}]   blob {i} from {entry['url']}")
-                print(f"[{src['name']}]   top-level: {top}")
-                print(f"[{src['name']}]   preview: {json.dumps(data)[:600]}")
+            if DEBUG:
+                print(f"[{src['name']}] JSON endpoints seen: {len(json_urls)}")
+                for u in json_urls[:40]:
+                    print(f"[{src['name']}]   endpoint: {u}")
+                for i, entry in enumerate(captured):
+                    data = entry["data"]
+                    top = list(data.keys()) if isinstance(data, dict) else "(list)"
+                    print(f"[{src['name']}]   top-level: {top}")
+                    print(f"[{src['name']}]   preview: {json.dumps(data)[:600]}")
             matches, floor = find_matches(captured)
             floors[src["name"]] = floor
             for m in matches:
                 m["source"] = src["name"]
                 m["url"] = src["url"]
             all_matches.extend(matches)
-            print(f"[{src['name']}] floor {floor}, qualifying {len(matches)}")
+            print(f"[{src['name']}] captured {len(captured)} feed(s), "
+                  f"floor {('$%.0f' % floor) if floor else 'no data'}, "
+                  f"qualifying {len(matches)}")
         except Exception as e:
             print(f"[{src['name']}] error: {e}")
 
