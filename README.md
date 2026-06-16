@@ -1,8 +1,15 @@
 # World Cup Ticket Alert (GitHub Actions + Playwright)
 
-Watches SeatGeek for **USA vs Australia, June 19 2026, Lumen Field** and emails
-you when 100-200 level seats with 4+ together drop under $2,500. No API key —
-it drives a real browser, so it reads the same data a person sees.
+Watches multiple ticketing sites for **USA vs Australia, June 19 2026, Lumen
+Field** and emails you when 100-200 level seats with 4+ together drop under
+$2,500. No API key — it drives a real browser, so it reads the same data a
+person sees.
+
+Ships set up for **SeatGeek + TickPick**. To add **StubHub, Vivid Seats, or
+Gametime**, uncomment them in the `SOURCES` list at the top of `scrape.py`.
+Each new match is labeled with the site it came from, and they're combined into
+one email. **FIFA official resale isn't included** — it needs your FIFA login
+and is locked down, so use FIFA's own site alerts for that source.
 
 ## Files
 - `scrape.py` — the scraper and email logic
@@ -25,16 +32,19 @@ it drives a real browser, so it reads the same data a person sees.
 
 4. **(Optional) add repo variables** (same page → *Variables*) to change
    defaults without editing code: `PRICE_LIMIT`, `MIN_QTY`, `SECTION_MIN`,
-   `SECTION_MAX`, `EVENT_URL`. Skip this and the built-in defaults apply.
+   `SECTION_MAX`. To add or remove **platforms**, edit the `SOURCES` list at
+   the top of `scrape.py`.
 
 5. **Turn on Actions** if prompted, then open the **Actions** tab, pick
    *WC Ticket Alert*, and click **Run workflow** to test it now.
 
 ## Checking the test run
-- Open the run and read the logs. You want to see a line like
-  `Captured N JSON blob(s)` with N greater than 0, and a floor price.
-- If it captured 0 blobs, the site likely blocked the browser. Download the
-  **debug-screenshot** artifact from the run to see what the page showed.
+- Open the run and read the logs. For each site you want a line like
+  `[SeatGeek] captured N JSON blob(s)` with N greater than 0, plus a floor
+  price.
+- If a site captured 0 blobs, it blocked the browser that run. Download the
+  **debug-screenshots** artifact to see what each page showed (one image per
+  site).
 
 ## Honest limits
 - **Anti-bot:** SeatGeek uses DataDome. A real browser gets through far more
