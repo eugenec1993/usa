@@ -41,10 +41,15 @@ SOURCES = [
 # FIFA official resale is intentionally NOT here: it needs your FIFA login and
 # is heavily protected. Use FIFA's own site alerts for that source.
 
-PRICE_LIMIT = float(os.environ.get("PRICE_LIMIT", "2500"))
-MIN_QTY     = int(os.environ.get("MIN_QTY", "4"))
-SECTION_MIN = int(os.environ.get("SECTION_MIN", "100"))
-SECTION_MAX = int(os.environ.get("SECTION_MAX", "299"))
+def _env(name, default):
+    """Return the env value, but fall back to default if it's missing OR blank."""
+    v = os.environ.get(name)
+    return v if v not in (None, "") else default
+
+PRICE_LIMIT = float(_env("PRICE_LIMIT", "2500"))
+MIN_QTY     = int(_env("MIN_QTY", "4"))
+SECTION_MIN = int(_env("SECTION_MIN", "100"))
+SECTION_MAX = int(_env("SECTION_MAX", "299"))
 STATE_FILE  = "state.json"
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
