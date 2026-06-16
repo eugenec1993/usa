@@ -63,14 +63,17 @@ FEED_HINTS = ("listing", "inventory", "offer", "quote", "ticketlist", "seats")
 
 def scrape_source(url, name):
     captured = []
+    json_urls = []
 
     def on_response(resp):
         try:
+            ctype = (resp.headers or {}).get("content-type", "")
+            if "json" not in ctype:
+                return
+            json_urls.append(resp.url)
             u = resp.url.lower()
             if any(h in u for h in FEED_HINTS):
-                ctype = (resp.headers or {}).get("content-type", "")
-                if "json" in ctype:
-                    captured.append(resp.json())
+                captured.append({"url": resp.url, "data": resp.json()})
         except Exception:
             pass
 
@@ -100,7 +103,7 @@ def scrape_source(url, name):
         except Exception:
             pass
         browser.close()
-    return captured
+    return captured, json_urls
 
 
 # ---------- pull listing dicts out of captured JSON ----------
@@ -172,8 +175,8 @@ def normalize(listing):
 
 def find_matches(captured):
     seen, matches, all_prices = set(), [], []
-    for blob in captured:
-        for raw in extract_listings(blob):
+    for entry in captured:
+        for raw in extract_listings(entry["data"]):
             n = normalize(raw)
             if n["price"]:
                 all_prices.append(n["price"])
@@ -227,8 +230,17 @@ def main():
 
     for src in SOURCES:
         try:
-            captured = scrape_source(src["url"], src["name"])
-            print(f"[{src['name']}] captured {len(captured)} JSON blob(s)")
+            captured, json_urls = scrape_source(src["url"], src["name"])
+            print(f"[{src['name']}] saw {len(json_urls)} JSON endpoint(s), "
+                  f"captured {len(captured)} matching the feed hints")
+            for u in json_urls[:40]:
+                print(f"[{src['name']}]   endpoint: {u}")
+            for i, entry in enumerate(captured):
+                data = entry["data"]
+                top = list(data.keys()) if isinstance(data, dict) else "(list)"
+                print(f"[{src['name']}]   blob {i} from {entry['url']}")
+                print(f"[{src['name']}]   top-level: {top}")
+                print(f"[{src['name']}]   preview: {json.dumps(data)[:600]}")
             matches, floor = find_matches(captured)
             floors[src["name"]] = floor
             for m in matches:
